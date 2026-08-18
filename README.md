@@ -19,7 +19,7 @@ dsh --profile web
 从 GitHub 安装：
 
 ```sh
-dsh plugin --profile web add -w github:kvenux/dsh-oai-oauth#v0.2.0
+dsh plugin --profile web add -w github:kvenux/dsh-oai-oauth
 dsh --profile web
 ```
 
@@ -30,7 +30,7 @@ allowBuilds:
   dsh-oai-oauth: true
 ```
 
-然后重新执行 `dsh plugin ... add`。这项授权允许依赖在安装时执行本机代码，因此建议检查源码并固定 tag 或 commit。
+然后重新执行 `dsh plugin ... add`。这项授权允许依赖在安装时执行本机代码，因此建议安装前检查源码。
 
 本项目当前只通过这个 GitHub 仓库发布。npm 上的无 scope 同名包由其他维护者发布，不是本项目的分发渠道。
 
@@ -78,22 +78,12 @@ dsh-oai-oauth/
 
 `cordis.patch.yml` 同时加载根插件和 `/web` 插件。根插件只依赖 DSH 的 LLM 与 credentials capability；Web 条目等到 Web server 与默认模型服务就绪后再注册设置接口。因此同一个 bundle 也可以装进没有 Web UI 的组合中，只是无法从界面发起登录。
 
-## 开发与发布
+## 开发
 
 ```sh
 pnpm install
 pnpm run check
 ```
-
-创建 GitHub release 前更新 `package.json` 的版本，完成检查后提交并为同一版本创建 tag：
-
-```sh
-pnpm run check
-git tag v0.2.0
-git push origin main v0.2.0
-```
-
-通过 GitHub 分发时保留 `prepare` 脚本，确保 git dependency 安装后生成 `lib/`。如需发布 npm，应先改用当前维护者拥有的 scoped 包名；`files` 只包含运行产物、声明、bundle patch、README 和许可证。
 
 ## 实现来源
 
