@@ -1,0 +1,104 @@
+{
+  "name": "dsh-oai-oauth",
+  "version": "0.2.0",
+  "description": "ChatGPT Plus/Pro OAuth and GPT model provider for DeepSeek Harness",
+  "type": "module",
+  "main": "./lib/index.js",
+  "types": "./lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./web": {
+      "types": "./lib/types/web.d.ts",
+      "default": "./lib/web.js"
+    },
+    "./client": "./lib/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/web.js",
+    "lib/client.js",
+    "lib/client.js.map",
+    "lib/types/**/*.d.ts",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && tsdown",
+    "prepare": "pnpm run build",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "check": "pnpm run typecheck && pnpm run test && pnpm run build && npm pack --dry-run"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-settings"
+      ]
+    }
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "openai",
+    "chatgpt",
+    "oauth",
+    "codex"
+  ],
+  "author": "kvenux",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kvenux/dsh-oai-oauth.git"
+  },
+  "homepage": "https://github.com/kvenux/dsh-oai-oauth#readme",
+  "bugs": {
+    "url": "https://github.com/kvenux/dsh-oai-oauth/issues"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "dependencies": {
+    "@earendil-works/pi-ai": "^0.84.2",
+    "undici": "^7.16.0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-agent-default-model": ">=0.1.0-rc.7 <0.2.0",
+    "@deepseek-ai/dsh-attachment": ">=0.1.0-rc.7 <0.2.0",
+    "@deepseek-ai/dsh-credentials": ">=0.1.0-rc.7 <0.2.0",
+    "@deepseek-ai/dsh-host-webserver": ">=0.1.0-rc.7 <0.2.0",
+    "@deepseek-ai/dsh-llm": ">=0.1.0-rc.7 <0.2.0",
+    "@deepseek-ai/dsh-settings": ">=0.1.0-rc.7 <0.2.0",
+    "@deepseek-ai/schemastery": "^3.18.1"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "4.0.1",
+    "@deepseek-ai/dsh-agent-default-model": "0.1.0-rc.7",
+    "@deepseek-ai/dsh-attachment": "0.1.0-rc.7",
+    "@deepseek-ai/dsh-client-runtime": "0.1.0-rc.7",
+    "@deepseek-ai/dsh-client-ui-settings": "0.1.0-rc.7",
+    "@deepseek-ai/dsh-client-ui-slots": "0.1.0-rc.7",
+    "@deepseek-ai/dsh-credentials": "0.1.0-rc.7",
+    "@deepseek-ai/dsh-host-webserver": "0.1.0-rc.7",
+    "@deepseek-ai/dsh-llm": "0.1.0-rc.7",
+    "@deepseek-ai/dsh-settings": "0.1.0-rc.7",
+    "@deepseek-ai/schemastery": "3.18.1",
+    "@types/node": "^24.10.0",
+    "@types/react": "^19.2.2",
+    "react": "^19.2.0",
+    "tsdown": "^0.16.3",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}

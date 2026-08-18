@@ -1,0 +1,6 @@
+- insert:
+    - id: openai-oauth
+      name: dsh-oai-oauth
+
+    - id: openai-oauth-web
+      name: dsh-oai-oauth/web
