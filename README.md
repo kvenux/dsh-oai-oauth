@@ -9,6 +9,13 @@
 
 ## 安装
 
+从 npm 安装：
+
+```sh
+dsh plugin --profile web add -w @kevensun/dsh-oai-oauth
+dsh --profile web
+```
+
 本地开发目录：
 
 ```sh
@@ -27,12 +34,12 @@ GitHub 依赖会从源码执行 `prepare` 构建。pnpm 10+ 第一次会拒绝�
 
 ```yaml
 allowBuilds:
-  dsh-oai-oauth: true
+  "@kevensun/dsh-oai-oauth": true
 ```
 
 然后重新执行 `dsh plugin ... add`。这项授权允许依赖在安装时执行本机代码，因此建议安装前检查源码。
 
-本项目当前只通过这个 GitHub 仓库发布。npm 上的无 scope 同名包由其他维护者发布，不是本项目的分发渠道。
+请使用带 `@kevensun` scope 的 npm 包。无 scope 的同名包由其他维护者发布，不是本项目的分发渠道。
 
 ## 使用
 

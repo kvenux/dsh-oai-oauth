@@ -1,6 +1,6 @@
 {
-  "name": "dsh-oai-oauth",
-  "version": "0.2.0",
+  "name": "@kevensun/dsh-oai-oauth",
+  "version": "0.2.1",
   "description": "ChatGPT Plus/Pro OAuth and GPT model provider for DeepSeek Harness",
   "type": "module",
   "main": "./lib/index.js",
@@ -63,6 +63,9 @@
   "homepage": "https://github.com/kvenux/dsh-oai-oauth#readme",
   "bugs": {
     "url": "https://github.com/kvenux/dsh-oai-oauth/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "license": "MIT",
   "engines": {
