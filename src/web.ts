@@ -26,6 +26,46 @@ function json(res: ServerResponse, status: number, body: unknown): void {
   res.end(encoded)
 }
 
+/** Visible same-origin bridge used while the settings page prepares the OAuth URL. */
+export function loginPendingPage(): string {
+  return `<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>OpenAI OAuth</title></head>
+<body style="font-family:system-ui;padding:40px;line-height:1.55">
+  <h1>正在准备 OpenAI 登录</h1>
+  <p id="status">请稍候，不要关闭这个窗口。</p>
+  <p><a id="continue" hidden rel="noreferrer">继续打开授权页面</a></p>
+  <script>
+    (() => {
+      if (location.hash.length <= 1) return
+      const status = document.getElementById('status')
+      const link = document.getElementById('continue')
+      try {
+        const target = new URL(decodeURIComponent(location.hash.slice(1)))
+        if (target.protocol !== 'https:' || target.hostname !== 'auth.openai.com') throw new Error('invalid OAuth destination')
+        status.textContent = '正在打开 OpenAI 授权页面…'
+        link.href = target.href
+        link.hidden = false
+        window.opener = null
+        location.replace(target.href)
+      } catch (error) {
+        status.textContent = '无法打开授权页面：' + (error instanceof Error ? error.message : String(error))
+      }
+    })()
+  </script>
+</body>
+</html>`
+}
+
+function html(res: ServerResponse, body: string): void {
+  res.writeHead(200, {
+    'content-type': 'text/html; charset=utf-8',
+    'cache-control': 'no-store',
+    'content-length': Buffer.byteLength(body),
+  })
+  res.end(body)
+}
+
 function method(req: IncomingMessage, res: ServerResponse, expected: 'GET' | 'POST'): boolean {
   if (req.method === expected) return true
   res.setHeader('allow', expected)
@@ -77,6 +117,14 @@ function proxyRequest(value: unknown): ProxySettings {
 export function apply(ctx: Context): void {
   ctx.effect(() => {
     const routes = [
+    ctx.webServer.register({
+      kind: 'exact',
+      path: `${HTTP_PREFIX}/login-pending`,
+      handler: async (req, res) => {
+        if (!method(req, res, 'GET')) return
+        html(res, loginPendingPage())
+      },
+    }),
     ctx.webServer.register({
       kind: 'exact',
       path: `${HTTP_PREFIX}/proxy`,

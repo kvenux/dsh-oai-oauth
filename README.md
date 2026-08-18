@@ -45,12 +45,14 @@ allowBuilds:
 
 1. 启动 `dsh web` 并打开 Web UI。
 2. 打开 Settings → OpenAI OAuth。
-3. 如需代理，打开“插件代理”，填写 `http://127.0.0.1:7890`。点击登录时也会自动保存当前代理配置。
-4. 点击“使用浏览器登录”。插件启动 PKCE 流程，浏览器回调监听 `localhost:1455`。
+3. 如需代理，打开“插件代理”。启用开关会立即保存；修改代理地址后点击“保存代理设置”。重新打开设置页或重启 DSH 后，页面会从持久化配置重新读取开关和地址。
+4. 点击“使用浏览器登录”。插件先打开一个同源的“正在准备 OpenAI 登录”页面，再跳转到 OpenAI 授权页；PKCE 回调监听 `localhost:1455`。如果浏览器阻止自动跳转，设置页和过渡页都会保留可点击的授权链接。
 5. 完成 ChatGPT 授权。设置页会自动更新为已连接。
 6. 选择 GPT/Codex 模型和推理强度，点击“设为默认模型”。
 
 插件代理只作用于 OAuth 授权码交换、token 刷新和 Codex 模型请求；它不设置 `HTTP_PROXY`、`HTTPS_PROXY` 或 Node 全局 dispatcher，因此不会改变 DSH Web 和其他插件的网络。开启代理后模型请求固定使用 SSE，以避免 WebSocket 绕过逐请求代理。浏览器中的 OpenAI 登录页仍使用浏览器自身的网络设置。
+
+代理配置保存在 `$DSH_HOME/settings.yaml` 的 `oai-oauth` 命名空间。页面中的开关状态以 Host 返回值为准，不依赖浏览器本地存储。
 
 登录成功后，插件通过同一 OAuth 凭据读取当前 ChatGPT 账号的 Codex 模型目录，并使用服务端返回的 reasoning effort；设置页的“刷新模型目录”可以强制重新读取。网络不可用时回退到随插件安装的 `@earendil-works/pi-ai` catalog。现有会话保留原有模型；默认选择用于之后创建的新会话。
 

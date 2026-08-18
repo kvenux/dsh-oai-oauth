@@ -91,7 +91,6 @@ function OpenAIOAuthSettings(): ReactNode {
   const [authUrl, setAuthUrl] = useState<string>()
   const [proxyEnabled, setProxyEnabled] = useState(false)
   const [proxyUrl, setProxyUrl] = useState('http://127.0.0.1:7890')
-  const [proxyLoaded, setProxyLoaded] = useState(false)
 
   const refresh = useCallback(async (): Promise<Status> => {
     const [statusBody, modelsBody, proxyBody] = await Promise.all([
@@ -104,13 +103,10 @@ function OpenAIOAuthSettings(): ReactNode {
     const selectedModel = modelsBody.selection?.model ?? modelsBody.models[0]?.id ?? ''
     setModel(current => modelsBody.models.some(row => row.id === current) ? current : selectedModel)
     setReasoning(current => current || (modelsBody.selection?.reasoningEffort ?? ''))
-    if (!proxyLoaded) {
-      setProxyEnabled(proxyBody.proxy.enabled)
-      setProxyUrl(proxyBody.proxy.url)
-      setProxyLoaded(true)
-    }
+    setProxyEnabled(proxyBody.proxy.enabled)
+    setProxyUrl(proxyBody.proxy.url)
     return statusBody.status
-  }, [proxyLoaded])
+  }, [])
 
   useEffect(() => {
     void refresh().catch(reason => setError(reason instanceof Error ? reason.message : String(reason)))
@@ -119,25 +115,45 @@ function OpenAIOAuthSettings(): ReactNode {
   useEffect(() => {
     if (status?.state !== 'logging-in') return
     const timer = window.setInterval(() => {
-      void refresh().then(next => {
-        if (next.state === 'connected') setAuthUrl(undefined)
+      void get<{ status: Status }>('/status').then(body => {
+        setStatus(body.status)
+        if (body.status.state === 'connected') setAuthUrl(undefined)
       }).catch(reason => setError(reason instanceof Error ? reason.message : String(reason)))
     }, 1_000)
     return () => { window.clearInterval(timer) }
-  }, [refresh, status?.state])
+  }, [status?.state])
 
   const login = async (): Promise<void> => {
     setBusy(true)
     setError(undefined)
-    const popup = window.open('about:blank', 'dsh-oai-oauth', 'popup,width=720,height=760')
+    const popup = window.open(`${HTTP_PREFIX}/login-pending`, 'dsh-oai-oauth', 'popup,width=720,height=760')
     try {
       await post('/proxy', { enabled: proxyEnabled, url: proxyUrl })
       const result = await post<{ url: string }>('/login')
       setAuthUrl(result.url)
       setStatus({ state: 'logging-in' })
-      if (popup !== null) popup.location.href = result.url
+      if (popup !== null) {
+        popup.location.replace(`${HTTP_PREFIX}/login-pending#${encodeURIComponent(result.url)}`)
+      }
     } catch (reason) {
       popup?.close()
+      setError(reason instanceof Error ? reason.message : String(reason))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const toggleProxy = async (enabled: boolean): Promise<void> => {
+    const previous = proxyEnabled
+    setProxyEnabled(enabled)
+    setBusy(true)
+    setError(undefined)
+    try {
+      const body = await post<{ proxy: ProxySettings }>('/proxy', { enabled, url: proxyUrl })
+      setProxyEnabled(body.proxy.enabled)
+      setProxyUrl(body.proxy.url)
+    } catch (reason) {
+      setProxyEnabled(previous)
       setError(reason instanceof Error ? reason.message : String(reason))
     } finally {
       setBusy(false)
@@ -208,7 +224,8 @@ function OpenAIOAuthSettings(): ReactNode {
         <p>只代理本插件的 OAuth 登录、token 刷新和模型请求，不影响 DSH Web、其他插件或系统网络。</p>
         <div className="dsh-oai-oauth-row">
           <label className="dsh-oai-oauth-check">
-            <input type="checkbox" checked={proxyEnabled} onChange={event => { setProxyEnabled(event.target.checked) }} />
+            <input type="checkbox" checked={proxyEnabled} disabled={busy}
+              onChange={event => { void toggleProxy(event.target.checked) }} />
             启用代理
           </label>
           <label>
@@ -218,7 +235,7 @@ function OpenAIOAuthSettings(): ReactNode {
           </label>
           <button className="secondary" disabled={busy || (proxyEnabled && proxyUrl.length === 0)} onClick={() => { void saveProxy() }}>保存代理设置</button>
         </div>
-        <p className="dsh-oai-oauth-note">浏览器打开的登录网页仍使用浏览器自己的网络；授权码交换及后续 API 请求使用这里的代理。</p>
+        <p className="dsh-oai-oauth-note">启用开关会立即保存；修改代理地址后请点击“保存代理设置”。浏览器打开的登录网页仍使用浏览器自己的网络；授权码交换及后续 API 请求使用这里的代理。</p>
       </section>
 
       <section className="dsh-oai-oauth-card">

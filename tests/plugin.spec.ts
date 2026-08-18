@@ -3,6 +3,7 @@ import { Context } from '@deepseek-ai/cordis'
 import LlmRuntime from '@deepseek-ai/dsh-llm'
 import { CredentialProvider, type CredentialInfo, type CredentialRef, type ResolvedCredential } from '@deepseek-ai/dsh-credentials'
 import DshOpenAIOAuthPlugin, { PROVIDER_ID } from '../src/index.ts'
+import { loginPendingPage } from '../src/web.ts'
 
 class EmptyCredentials extends CredentialProvider {
   constructor(ctx: Context) { super(ctx) }
@@ -13,6 +14,13 @@ class EmptyCredentials extends CredentialProvider {
 }
 
 describe('dsh-oai-oauth plugin', () => {
+  it('serves a visible same-origin bridge for browser OAuth navigation', () => {
+    const page = loginPendingPage()
+    expect(page).toContain('正在准备 OpenAI 登录')
+    expect(page).toContain("target.hostname !== 'auth.openai.com'")
+    expect(page).toContain('location.replace(target.href)')
+  })
+
   it('registers the OAuth provider and current pi-ai model catalog without logging in', async () => {
     const ctx = new Context()
     await ctx.plugin(LlmRuntime)
