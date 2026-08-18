@@ -9,21 +9,30 @@
 
 ## 安装
 
-从 npm 安装：
+### 从 npm 安装
 
 ```sh
 dsh plugin --profile web add -w @kevensun/dsh-oai-oauth
 dsh web
 ```
 
-本地开发目录：
+### 从源码安装
+
+克隆仓库并安装到本地 DSH profile：
 
 ```sh
+git clone https://github.com/kvenux/dsh-oai-oauth.git
+cd dsh-oai-oauth
+pnpm install
 dsh plugin --profile web add -w ../dsh-oai-oauth
 dsh web
 ```
 
-从 GitHub 安装：
+`pnpm install` 是必需步骤。本地路径安装使用 `link:` 链接，`dsh plugin add` 不会进入源码目录安装依赖。安装依赖时会自动执行本项目的 `prepare` 脚本并完成构建，因此首次安装不需要再单独运行 `pnpm run build`。
+
+修改源码后，重新执行 `pnpm run build` 并重启 `dsh web` 即可验证改动。
+
+### 从 GitHub 安装
 
 ```sh
 dsh plugin --profile web add -w github:kvenux/dsh-oai-oauth
