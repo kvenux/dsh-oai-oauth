@@ -43,6 +43,7 @@ const STYLE = `
 .dsh-oai-oauth button:disabled { opacity: .55; cursor: default; }
 .dsh-oai-oauth label { display: grid; gap: 6px; min-width: 220px; font-size: 13px; font-weight: 600; }
 .dsh-oai-oauth select, .dsh-oai-oauth input[type="url"] { min-height: 38px; border: 1px solid var(--color-border, #cbd2dd); border-radius: 8px; padding: 0 10px; color: inherit; background: var(--color-bg, transparent); font: inherit; }
+.dsh-oai-oauth select option { color: #111827; background: #fff; }
 .dsh-oai-oauth input[type="url"] { width: min(420px, 80vw); }
 .dsh-oai-oauth-check { display: flex !important; grid-template-columns: none !important; align-items: center; min-width: auto !important; }
 .dsh-oai-oauth-error { color: #c23636 !important; }
@@ -179,6 +180,8 @@ function OpenAIOAuthSettings(): ReactNode {
     setError(undefined)
     try {
       await post('/logout')
+      setAuthUrl(undefined)
+      setStatus({ state: 'disconnected' })
       await refresh()
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : String(reason))
@@ -244,9 +247,11 @@ function OpenAIOAuthSettings(): ReactNode {
             <span className={`dsh-oai-oauth-dot ${status?.state ?? ''}`} />
             {statusText(status)}
           </span>
-          {status?.state === 'connected'
-            ? <button className="secondary" disabled={busy} onClick={() => { void logout() }}>断开连接</button>
-            : <button disabled={busy || status?.state === 'logging-in'} onClick={() => { void login() }}>使用浏览器登录</button>}
+          {status?.state !== 'connected'
+            && <button disabled={busy || status?.state === 'logging-in'} onClick={() => { void login() }}>使用浏览器登录</button>}
+          <button className="secondary" disabled={busy} onClick={() => { void logout() }}>
+            {status?.state === 'connected' ? '退出登录' : '清除登录信息'}
+          </button>
           <button className="secondary" disabled={busy} onClick={() => { void refresh() }}>刷新状态</button>
         </div>
         {authUrl !== undefined && <p className="dsh-oai-oauth-note">浏览器没有自动打开？<a href={authUrl} target="_blank" rel="noreferrer">点击继续授权</a></p>}

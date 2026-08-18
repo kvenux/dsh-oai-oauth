@@ -1,6 +1,6 @@
 {
   "name": "@kevensun/dsh-oai-oauth",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "ChatGPT Plus/Pro OAuth and GPT model provider for DeepSeek Harness",
   "type": "module",
   "main": "./lib/index.js",

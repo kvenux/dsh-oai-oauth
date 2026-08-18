@@ -116,7 +116,7 @@ export class OpenAIOAuthService extends Service {
       },
       (error: unknown) => {
         const message = error instanceof Error ? error.message : String(error)
-        this.lastError = message
+        if (this.active === active) this.lastError = message
         rejectUrl(error)
       },
     ).finally(() => {
