@@ -1,6 +1,9 @@
+import { readFileSync } from 'node:fs'
 import type { UserConfig } from 'tsdown'
 
-const id = 'dsh-oai-oauth'
+const { name: id } = JSON.parse(
+  readFileSync(new URL('./package.json', import.meta.url), 'utf8'),
+) as { name: string }
 
 function node(entry: string): UserConfig {
   return {

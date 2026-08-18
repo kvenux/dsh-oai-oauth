@@ -13,21 +13,21 @@
 
 ```sh
 dsh plugin --profile web add -w @kevensun/dsh-oai-oauth
-dsh --profile web
+dsh web
 ```
 
 本地开发目录：
 
 ```sh
 dsh plugin --profile web add -w ../dsh-oai-oauth
-dsh --profile web
+dsh web
 ```
 
 从 GitHub 安装：
 
 ```sh
 dsh plugin --profile web add -w github:kvenux/dsh-oai-oauth
-dsh --profile web
+dsh web
 ```
 
 GitHub 依赖会从源码执行 `prepare` 构建。pnpm 10+ 第一次会拒绝未授权的安装脚本；按 DSH 输出的提示，在该 profile 的 `pnpm-workspace.yaml` 中加入：
@@ -43,7 +43,7 @@ allowBuilds:
 
 ## 使用
 
-1. 启动 `dsh --profile web` 并打开 Web UI。
+1. 启动 `dsh web` 并打开 Web UI。
 2. 打开 Settings → OpenAI OAuth。
 3. 如需代理，打开“插件代理”，填写 `http://127.0.0.1:7890`。点击登录时也会自动保存当前代理配置。
 4. 点击“使用浏览器登录”。插件启动 PKCE 流程，浏览器回调监听 `localhost:1455`。
@@ -91,9 +91,5 @@ dsh-oai-oauth/
 pnpm install
 pnpm run check
 ```
-
-## 实现来源
-
-OAuth 流程与 Chrys 的 OpenAI Codex 实现保持同一语义：PKCE 浏览器登录、`localhost:1455` 回调、token 持久化/刷新，以及 ChatGPT Codex Responses backend。本插件通过 `pi-ai` 的 provider 复用这些能力，再适配 DSH 的凭据、模型目录、消息、工具调用、图片附件和流式协议。
 
 本项目没有自动登录、也不会在测试中访问真实 OpenAI 账号。真实登录和模型请求需要用户在自己的 DSH 实例中主动完成。
