@@ -3,7 +3,7 @@ import { Context } from '@deepseek-ai/cordis'
 import LlmRuntime from '@deepseek-ai/dsh-llm'
 import { CredentialProvider, type CredentialInfo, type CredentialRef, type ResolvedCredential } from '@deepseek-ai/dsh-credentials'
 import DshOpenAIOAuthPlugin, { PROVIDER_ID } from '../src/index.ts'
-import { loginPendingPage } from '../src/web.ts'
+import { loginPendingPage, loginRedirectTarget } from '../src/web.ts'
 
 class EmptyCredentials extends CredentialProvider {
   constructor(ctx: Context) { super(ctx) }
@@ -14,11 +14,20 @@ class EmptyCredentials extends CredentialProvider {
 }
 
 describe('dsh-oai-oauth plugin', () => {
-  it('serves a visible same-origin bridge for browser OAuth navigation', () => {
+  it('serves a visible same-origin page while browser OAuth is prepared', () => {
     const page = loginPendingPage()
     expect(page).toContain('正在准备 OpenAI 登录')
-    expect(page).toContain("target.hostname !== 'auth.openai.com'")
-    expect(page).toContain('location.replace(target.href)')
+    expect(page).not.toContain('<script>')
+  })
+
+  it('redirects only to the fixed OpenAI OAuth endpoint', () => {
+    const target = 'https://auth.openai.com/oauth/authorize?response_type=code&state=test'
+    expect(loginRedirectTarget(`/dsh-oai-oauth/login-pending?target=${encodeURIComponent(target)}`)).toBe(target)
+    expect(loginRedirectTarget('/dsh-oai-oauth/login-pending')).toBeUndefined()
+    expect(() => loginRedirectTarget('/dsh-oai-oauth/login-pending?target=https%3A%2F%2Fevil.example%2Foauth%2Fauthorize'))
+      .toThrow('invalid OAuth destination')
+    expect(() => loginRedirectTarget('/dsh-oai-oauth/login-pending?target=https%3A%2F%2Fauth.openai.com%2Fevil'))
+      .toThrow('invalid OAuth destination')
   })
 
   it('registers the OAuth provider and current pi-ai model catalog without logging in', async () => {

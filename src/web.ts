@@ -26,7 +26,7 @@ function json(res: ServerResponse, status: number, body: unknown): void {
   res.end(encoded)
 }
 
-/** Visible same-origin bridge used while the settings page prepares the OAuth URL. */
+/** Visible same-origin page used while the settings page prepares the OAuth URL. */
 export function loginPendingPage(): string {
   return `<!doctype html>
 <html lang="zh-CN">
@@ -34,27 +34,19 @@ export function loginPendingPage(): string {
 <body style="font-family:system-ui;padding:40px;line-height:1.55">
   <h1>正在准备 OpenAI 登录</h1>
   <p id="status">请稍候，不要关闭这个窗口。</p>
-  <p><a id="continue" hidden rel="noreferrer">继续打开授权页面</a></p>
-  <script>
-    (() => {
-      if (location.hash.length <= 1) return
-      const status = document.getElementById('status')
-      const link = document.getElementById('continue')
-      try {
-        const target = new URL(decodeURIComponent(location.hash.slice(1)))
-        if (target.protocol !== 'https:' || target.hostname !== 'auth.openai.com') throw new Error('invalid OAuth destination')
-        status.textContent = '正在打开 OpenAI 授权页面…'
-        link.href = target.href
-        link.hidden = false
-        window.opener = null
-        location.replace(target.href)
-      } catch (error) {
-        status.textContent = '无法打开授权页面：' + (error instanceof Error ? error.message : String(error))
-      }
-    })()
-  </script>
 </body>
 </html>`
+}
+
+/** Accept only the fixed OpenAI authorization endpoint as a redirect destination. */
+export function loginRedirectTarget(requestUrl: string | undefined): string | undefined {
+  const raw = new URL(requestUrl ?? '/', 'http://localhost').searchParams.get('target')
+  if (raw === null) return undefined
+  const target = new URL(raw)
+  if (target.origin !== 'https://auth.openai.com' || target.pathname !== '/oauth/authorize') {
+    throw new Error('invalid OAuth destination')
+  }
+  return target.href
 }
 
 function html(res: ServerResponse, body: string): void {
@@ -64,6 +56,15 @@ function html(res: ServerResponse, body: string): void {
     'content-length': Buffer.byteLength(body),
   })
   res.end(body)
+}
+
+function redirect(res: ServerResponse, location: string): void {
+  res.writeHead(302, {
+    location,
+    'cache-control': 'no-store',
+    'content-length': 0,
+  })
+  res.end()
 }
 
 function method(req: IncomingMessage, res: ServerResponse, expected: 'GET' | 'POST'): boolean {
@@ -122,6 +123,16 @@ export function apply(ctx: Context): void {
       path: `${HTTP_PREFIX}/login-pending`,
       handler: async (req, res) => {
         if (!method(req, res, 'GET')) return
+        try {
+          const target = loginRedirectTarget(req.url)
+          if (target !== undefined) {
+            redirect(res, target)
+            return
+          }
+        } catch (error) {
+          json(res, 400, { error: error instanceof Error ? error.message : String(error) })
+          return
+        }
         html(res, loginPendingPage())
       },
     }),

@@ -133,7 +133,7 @@ function OpenAIOAuthSettings(): ReactNode {
       setAuthUrl(result.url)
       setStatus({ state: 'logging-in' })
       if (popup !== null) {
-        popup.location.replace(`${HTTP_PREFIX}/login-pending#${encodeURIComponent(result.url)}`)
+        popup.location.replace(`${HTTP_PREFIX}/login-pending?target=${encodeURIComponent(result.url)}`)
       }
     } catch (reason) {
       popup?.close()
